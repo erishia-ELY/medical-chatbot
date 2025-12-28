@@ -94,9 +94,9 @@ if prompt := st.chat_input("Nhập câu hỏi tại đây..."):
             client = genai.Client(api_key=api_key)
             final_prompt = f"SYSTEM: {master_prompt}\nUSER: {prompt}"
             
-            # [FIX QUAN TRỌNG]: Dùng model 1.5-flash để không bị giới hạn
+            # [FIX QUAN TRỌNG]: Dùng 'gemini-flash-latest' để tránh lỗi 404 và 429
             response = client.models.generate_content_stream(
-                model="gemini-1.5-flash", 
+                model="gemini-flash-latest", 
                 contents=final_prompt
             )
 
@@ -112,7 +112,7 @@ if prompt := st.chat_input("Nhập câu hỏi tại đây..."):
             # Tự động xử lý nếu vẫn bị lỗi rate limit
             if "429" in str(e):
                 st.error("⏳ Đang quá tải. Vui lòng đợi 5 giây...")
-                time.sleep(5) # Tự động chờ
-                st.rerun()    # Tự động thử lại
+                time.sleep(5) 
+                st.rerun()    
             else:
                 st.error(f"Lỗi: {e}")
