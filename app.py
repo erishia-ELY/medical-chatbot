@@ -1,5 +1,6 @@
 import streamlit as st
 from google import genai
+import time
 
 # --- 1. CẤU HÌNH TRANG (MOBILE FIRST) ---
 st.set_page_config(
@@ -9,18 +10,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed" # Ẩn sidebar cho rộng chỗ
 )
 
-# --- 2. CSS FIX LỖI HIỂN THỊ (QUAN TRỌNG) ---
+# --- 2. CSS FIX LỖI HIỂN THỊ TRÊN ĐIỆN THOẠI ---
 st.markdown("""
 <style>
     /* 1. Nền tối Deep Blue dễ chịu cho mắt */
     .stApp {
         background-color: #000000;
         background-image: linear-gradient(147deg, #000000 0%, #041016 74%);
-        color: #ffffff !important; /* Bắt buộc chữ màu trắng */
+        color: #ffffff !important; /* Bắt buộc toàn bộ chữ phải màu trắng */
     }
 
-    /* 2. Fix lỗi chữ bị đen trên điện thoại */
-    p, h1, h2, h3, li, span, div {
+    /* 2. Ép màu chữ trong khung chat thành trắng (Fix lỗi trên điện thoại) */
+    .stMarkdown, p, h1, h2, h3, li, span, div {
         color: #e0e0e0 !important;
     }
 
@@ -61,35 +62,32 @@ try:
         api_key = st.secrets["GEMINI_API_KEY"]
 except: pass
 
-# Nếu không có key trong secrets, hiện ô nhập nhỏ gọn
+# Nếu không có key trong secrets, hiện ô nhập nhỏ gọn (ẩn trong Expander cho đỡ rối)
 if not api_key:
-    with st.expander("🔐 Nhập API Key (Nếu chưa cài đặt)"):
+    with st.expander("🔐 Cài đặt API Key"):
         raw_key = st.text_input("Dán Key Google vào đây:", type="password")
         if raw_key: api_key = raw_key.strip()
 
-# --- 4. SIÊU CÂU LỆNH (MASTER PROMPT) ---
+# --- 4. SIÊU CÂU LỆNH (MASTER PROMPT) - GỘP 3 TRONG 1 ---
 # Đây là "bộ não" giúp bot tự biến hình
 master_prompt = """
-Bạn là MediBot - Trợ lý Y tế AI Thông minh 3 trong 1.
+Bạn là MediBot - Trợ lý Y tế AI Thông minh.
 Nhiệm vụ: Tự động phân tích câu hỏi của người dùng và đóng vai phù hợp nhất:
 
-1. [TRƯỜNG HỢP KHẨN CẤP/CHẤN THƯƠNG]:
+1. [NẾU LÀ CẤP CỨU/CHẤN THƯƠNG]:
    - Vai trò: Bác sĩ Quân y Cấp cứu.
    - Phong cách: Khẩn trương, ngắn gọn, súc tích.
-   - Hành động: Hướng dẫn sơ cứu từng bước. Cảnh báo gọi 115 ngay nếu nguy hiểm.
+   - Hành động: Hướng dẫn sơ cứu từng bước. Cảnh báo gọi 115 ngay.
 
-2. [DINH DƯỠNG/THỰC PHẨM/TẬP LUYỆN]:
-   - Vai trò: Chuyên gia Dinh dưỡng & PT.
-   - Phong cách: Khoa học, khuyến khích, chi tiết.
+2. [NẾU LÀ DINH DƯỠNG/THỰC PHẨM]:
+   - Vai trò: Chuyên gia Dinh dưỡng.
+   - Phong cách: Khoa học, chi tiết.
    - Hành động: Tính calo, phân tích macro, gợi ý thực đơn.
 
-3. [TÂM LÝ/CẢM XÚC/STRESS]:
+3. [NẾU LÀ TÂM LÝ/CẢM XÚC/TÌNH CẢM]:
    - Vai trò: Chuyên gia Tâm lý trị liệu.
-   - Phong cách: Nhẹ nhàng, thấu cảm, sâu sắc.
-   - Hành động: Lắng nghe, không phán xét, đưa lời khuyên xoa dịu.
-
-4. [CÂU HỎI KHÁC]:
-   - Trả lời thân thiện như một trợ lý y tế đa năng.
+   - Phong cách: Nhẹ nhàng, thấu cảm, "chữa lành".
+   - Hành động: Lắng nghe, chia sẻ, không phán xét.
 
 QUY TẮC: Luôn trả lời bằng Tiếng Việt. Trình bày đẹp mắt (dùng gạch đầu dòng, in đậm).
 """
@@ -99,7 +97,7 @@ st.title("🧬 MediBot AI")
 st.caption("Sơ cứu • Dinh dưỡng • Tâm lý (Tự động nhận diện)")
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Chào bạn! Tôi có thể giúp gì cho sức khỏe của bạn hôm nay?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Chào bạn! Tôi là trợ lý sức khỏe toàn năng. Bạn đang gặp vấn đề gì (đau ốm, ăn uống hay tâm lý)?"}]
 
 # Hiển thị lịch sử chat
 for msg in st.session_state.messages:
@@ -107,7 +105,7 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 # Xử lý Chat
-if prompt := st.chat_input("Bạn đang cảm thấy thế nào?"):
+if prompt := st.chat_input("Nhập câu hỏi tại đây..."):
     if not api_key:
         st.toast("⚠️ Chưa có API Key! Vui lòng nhập Key.")
         st.stop()
@@ -126,11 +124,12 @@ if prompt := st.chat_input("Bạn đang cảm thấy thế nào?"):
             client = genai.Client(api_key=api_key)
             
             # Gửi kèm Master Prompt để định hướng Bot
-            # Lưu ý: Ta ghép prompt hệ thống vào mỗi lần gọi để bot không quên vai
             final_prompt = f"SYSTEM INSTRUCTION: {master_prompt}\nUSER QUERY: {prompt}"
             
+            # Sử dụng gemini-2.0-flash (bản ổn định hơn 2.5 một chút về limit)
+            # Nếu vẫn lỗi 429, hãy đổi dòng dưới thành "gemini-1.5-flash"
             response = client.models.generate_content_stream(
-                model="gemini-2.5-flash", 
+                model="gemini-2.0-flash", 
                 contents=final_prompt
             )
 
@@ -143,4 +142,6 @@ if prompt := st.chat_input("Bạn đang cảm thấy thế nào?"):
             st.session_state.messages.append({"role": "assistant", "content": full_text})
             
         except Exception as e:
-            st.error(f"Lỗi: {e}")
+            st.error(f"Lỗi kết nối: {e}")
+            if "429" in str(e):
+                st.warning("⏳ Hệ thống đang quá tải (Free Tier). Vui lòng chờ 5-10 giây rồi thử lại.")
