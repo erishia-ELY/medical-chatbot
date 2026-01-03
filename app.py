@@ -137,7 +137,7 @@ if prompt := st.chat_input("Nhập câu hỏi tại đây..."):
             
             # Dùng Gemini 2.0 Flash
             response = client.models.generate_content_stream(
-                model="gemini-2.0-flash", 
+                model="gemini-1.5-flash", 
                 contents=final_prompt
             )
 
