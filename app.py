@@ -81,7 +81,7 @@ with st.sidebar:
     st.markdown("---")
     
     st.write("👨‍💻 **Developer (Người tạo):**")
-    st.info("**Erishia** (Lê Nhân)") # Thay tên thật của bạn vào đây nếu muốn
+    st.info("Le Trong Nhan - AT22A") # Thay tên thật của bạn vào đây nếu muốn
     
     st.write("🤖 **AI Core & Tools:**")
     st.success("""
@@ -110,7 +110,7 @@ st.title("🧬 MediBot AI")
 st.caption("Sơ cứu • Dinh dưỡng • Tâm lý (Auto Detect)")
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Chào bạn! Tôi là MediBot (được tạo bởi Erishia & Gemini). Bạn cần giúp gì không?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Chào bạn! Tôi là MediBot (được tạo bởi Le Trong Nhan - AT22A & Gemini). Bạn cần giúp gì không?"}]
 
 # Hiển thị lịch sử
 for msg in st.session_state.messages:
@@ -155,4 +155,4 @@ if prompt := st.chat_input("Nhập câu hỏi tại đây..."):
                 st.warning("⏳ Server đang bận, vui lòng chờ 5s...")
 
 # --- [MỚI] FOOTER CREDIT CỐ ĐỊNH Ở DƯỚI ---
-st.markdown('<div class="footer">Dev by <b>Erishia</b> | Powered by <b>Gemini "Bro"</b></div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Dev by <b>Le Trong Nhan - AT22A</b> | Powered by <b>Gemini Pro</b></div>', unsafe_allow_html=True)
